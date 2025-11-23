@@ -1,0 +1,9 @@
+{
+    "manifest_version": 3,
+    "name": "Email Scam Analyzer",
+    "version": "1.0",
+    "description": "Detects and analyzes emails",
+    "action": {
+        "default_popup": "popup.html"
+    }
+}
