@@ -1,1 +1,5 @@
-console.log("This is a popup!")
+let button = document.getElementById("myButton");
+
+function button() {
+    button.textCotent = "it works";
+}
