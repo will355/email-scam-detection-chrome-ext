@@ -1,8 +1,32 @@
 {
     "manifest_version": 3,
-    "name": "Email Scam Analyzer",
+    "name": "Email Analyzer",
     "version": "1.0",
     "description": "Detects and analyzes emails",
+    "permissions": [
+        "activeTab"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://mail.google.com/*",
+                "https://outlook.live.com/*",
+                "https://outlook.office.com/*",
+                "https://outlook.office365.com/*",
+                "https://*.outlook.com/*",
+                "https://mail.yahoo.com/*",
+                "https://*.mail.yahoo.com/*",
+                "https://mail.protonmail.com/*",
+                "https://mail.proton.me/*",
+                "https://app.fastmail.com/*",
+                "https://mail.aol.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
     "action": {
         "default_popup": "popup.html"
     }

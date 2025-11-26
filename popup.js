@@ -1,5 +1,3 @@
-let button = document.getElementById("myButton");
-
-function button() {
-    button.textCotent = "it works";
-}
+document.getElementById('myButton').addEventListener('click', () => {
+    alert('Extension works!');
+});
