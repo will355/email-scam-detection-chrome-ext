@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Email Analyzer",
     "version": "1.0",
-    "description": "Detects and analyzes emails",
+    "description": "Detects and analyzes emails across multiple providers",
     "permissions": [
         "activeTab"
     ],
@@ -22,6 +22,10 @@
                 "https://mail.aol.com/*"
             ],
             "js": [
+                "providers/gmail.js",
+                "providers/outlook.js",
+                "providers/yahoo.js",
+                "providers/protonmail.js",
                 "content.js"
             ],
             "run_at": "document_end"
