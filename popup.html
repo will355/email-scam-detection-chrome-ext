@@ -1,13 +1,24 @@
 <!DOCTYPE html>
-   <html>
-   <head>
-       <style>
-           body { width: 200px; padding: 10px; }
-       </style>
-   </head>
-   <body>
-       <h3>Hello Extension!</h3>
-       <button id="myButton">Click Me</button>
-       <script src="popup.js"></script>
-   </body>
-   </html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Email Analyzer</title>
+<link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+<h2>Email Analyzer</h2>
+
+
+<button id="analyzeBtn">Analyze Email</button>
+
+
+<div id="result">
+<p><strong>Score:</strong> <span id="score">-</span>/100</p>
+<p><strong>Status:</strong> <span id="status">-</span></p>
+<ul id="issues"></ul>
+</div>
+
+
+<script src="popup.js"></script>
+</body>
+</html>
