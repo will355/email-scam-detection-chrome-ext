@@ -30,10 +30,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
 
 
-    // Link analysis
+    //
     links.forEach(link => {
         if (link.startsWith("http://")) {
-            score -= 15;
+            score -= 10;
             issues.push("Insecure HTTP link detected");
         }
 
