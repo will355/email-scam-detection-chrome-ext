@@ -17,8 +17,84 @@ if (!EMAIL_PROVIDER) {
 
 console.log("Email Analyzer running on:", EMAIL_PROVIDER)
 
+// checks if email message is open
+function isEmailOpen(provider) {
+    switch (provider) {
+        case 'gmail':
+            return !!document.querySelector("h2.hP");
+        case 'outlook':
+            return !!document.querySelector('[role="main"] div[aria-label]');
+        case 'yahoo':
+            return !!document.querySelector('[data-test-id="message-view-body"]');
+        case 'proton':
+            return !!document.querySelector(".message-content");
+        default:
+            return false;
+    }
+}
+
+// Email extractors
+
+function extractGmailEmail() {
+    const senderName = document.querySelector("span.gD")?.textContent?.trim() || "";
+    const senderEmail = document.querySelector("span.gD")?.getAttribute("email") || "";
+    const subject = document.querySelector("h2.hP")?.textContent?.trim() || "";
+    const bodyText = document.querySelector("div.a3s")?.innerText?.trim() || "";
+    const links = Array.from(
+        document.querySelectorAll("div.a3s a")
+    ).map(a => a.href);
+
+    return { senderName, senderEmail, subject, bodyText, links };
+}
+
+function extractOutlookEmail() {
+    const senderName = document.querySelector('[data-testid="message-from"] span')?.textContent?.trim() || "";
+
+    const senderEmail = document.querySelector('[data-testid="message-from"] span')?.getAttribute("title") || "";
+    const subject = document.querySelector('[data-testid="message-subject"]')?.textContent?.trim() || "";
+    const bodyText = document.querySelector('[role="document"]')?.innerText?.trim() || "";
+    const links = Array.from(
+        document.querySelectorAll('[role="document"] a')
+    ).map(a => a.href);
+    return { senderName, senderEmail, subject, bodyText, links };
+}
+
+function extractYahooEmail() {
+    const senderName = document.querySelector('[data-test-id="message-from"] span')?.textContent?.trim() || "";
+    const senderEmail = document.querySelector('[data-test-id="message-from"] span')?.getAttribute("title") || "";
+    const subject = document.querySelector('[data-test-id="message-subject"]')?.textContent?.trim() || "";
+    const bodyText = document.querySelector('[data-test-id="message-subject"]')?.textContent?.trim() || "";
+    const links = Array.from(
+        document.querySelectorAll('[data-test-id="message-view-body"] a')
+    ).map(a => a.href);
+    return { senderName, senderEmail, subject, bodyText, links };
+}
+
+function extractProtonEmail() {
+    const senderName = document.querySelector(".message-header .from-name")?.textContent?.trim() || "";
+    const senderEmail = document.querySelector(".message-header .from-address")?.textContent?.trim() || "";
+    const subject = document.querySelector(".message-header .subject")?.textContent?.trim() || "";
+    const bodyText = document.querySelector(".message-content")?.innerText?.trim() || "";
+    const links = Array.from(
+        document.querySelectorAll(".message-content a")
+    ).map(a => a.href);
+    return { senderName, senderEmail, subject, bodyText, links };
+}
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+
+    if (!EMAIL_PROVIDER) {
+        sendResponse({ error: "unsupported_provider" });
+        return;
+    }
+
+    if (!isEmailOpen(EMAIL_PROVIDER)) {
+        sendResponse({ error: "no_email_open" });
+        return;
+    }
+
     if (request.action !== "analyze") return;
 
 
