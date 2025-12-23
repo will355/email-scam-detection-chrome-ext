@@ -1,3 +1,23 @@
+function detectEmailProviders() {
+    const host = window.location.hostname
+    if (host.includes('mail.google.com')) return 'gmail';
+    if (host.includes('outlook.live.com') || host.includes('outlook.office.com')) return 'outlook';
+    if (host.includes('mail.yahoo.com')) return 'yahoo';
+    if (host.includes('mail.proton.me') || host.includes('mail.protonmail.com')) return 'proton';
+
+    return null;
+}
+
+const EMAIL_PROVIDER = detectEmailProviders()
+
+if (!EMAIL_PROVIDER) {
+    console.log("Email Analyzer: Unsupported site, exiting.")
+
+}
+
+console.log("Email Analyzer running on:", EMAIL_PROVIDER)
+
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action !== "analyze") return;
 
