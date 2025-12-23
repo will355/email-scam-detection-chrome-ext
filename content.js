@@ -112,6 +112,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     if (request.action !== "analyze") return;
 
+    const rawEmailData = extractEmailByProvider(EMAIL_PROVIDER);
+    sendResponse({ rawEmailData })
+
 
     const emailText = document.body.innerText.toLowerCase();
     const links = [...document.querySelectorAll('a')].map(a => a.href);
