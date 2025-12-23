@@ -81,6 +81,21 @@ function extractProtonEmail() {
     return { senderName, senderEmail, subject, bodyText, links };
 }
 
+function extractEmailByProvider(provider) {
+    switch (provider) {
+        case 'gmail':
+            return extractGmailEmail();
+        case 'outlook':
+            return extractOutlookEmail();
+        case 'yahoo':
+            return extractYahooEmail();
+        case 'proton':
+            return extractProtonEmail();
+        default:
+            return null;
+    }
+}
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
