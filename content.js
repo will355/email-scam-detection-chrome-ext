@@ -95,6 +95,29 @@ function extractEmailByProvider(provider) {
             return null;
     }
 }
+// checks for links
+function getDomainFromEmail(email) {
+    return email.split("@")[1]?.toLowerCase() || "";
+}
+
+function getDomainFromUrl(url) {
+    try {
+        return new URL(url).hostname.replace("www.", "").toLowerCase();
+    } catch {
+        return "";
+    }
+}
+
+function senderDomainMatchesLinks(senderEmail, links) {
+    const senderDomain = getDomainFromEmail(senderEmail);
+    if (!senderDomain || links.length === 0) return true;
+
+    return links.every(link => {
+        const linkDomain = getDomainFromUrl(link);
+        return linkDomain.includes(senderDomain);
+    });
+}
+
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
