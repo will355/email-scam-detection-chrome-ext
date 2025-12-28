@@ -118,6 +118,47 @@ function senderDomainMatchesLinks(senderEmail, links) {
     });
 }
 
+const SHORTENERS = ["bit.ly", "tinyurl.com", "t.co", "goo.gl", "is.gd"];
+
+function hasShortenedLinks(links) {
+    return links.some(link => {
+        const domain = getDomainFromUrl(link);
+        return SHORTENERS.includes(domain);
+    });
+}
+
+function isExternalSender(senderEmail) {
+    const domain = getDomainFromEmail(senderEmail);
+    const trustedDomains = ["gmail.com", "outlook.com", "yahoo.com", "proton.me"];
+    return !trustedDomains.includes(domain);
+}
+
+function hasIpBasedLinks(links) {
+    const ipRegex = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+    return links.some(link => {
+        const domain = getDomainFromUrl(link);
+        return ipRegex.test(domain);
+    });
+}
+
+function getLinkCount(links) {
+    return links.length;
+}
+
+function extractSecurityFeatures(raw) {
+    return {
+        senderDomainMatchesLinks: senderDomainMatchesLinks(raw.senderEmail, raw.links),
+        hasShortenedLinks: hasShortenedLinks(raw.links),
+        externalSender: isExternalSender(raw.senderEmail),
+        hasIpBasedLinks: hasIpBasedLinks(raw.links),
+        linkCount: getLinkCount(raw.links)
+    };
+}
+
+const features = extractSecurityFeatures(rawEmailData);
+
+
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
