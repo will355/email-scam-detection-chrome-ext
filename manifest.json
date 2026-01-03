@@ -13,6 +13,9 @@
         "https://mail.yahoo.com/*",
         "https://mail.proton.me/*"
     ],
+    "background": {
+        "service_worker": "background.js"
+    },
     "action": {
         "default_popup": "popup.html"
     },

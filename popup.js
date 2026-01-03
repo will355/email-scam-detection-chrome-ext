@@ -23,31 +23,45 @@ document.getElementById("analyzeBtn").addEventListener("click", async () => {
         return;
     }
 
-    // Inject content.js only on supported providers
+
     chrome.scripting.executeScript(
         {
             target: { tabId: tab.id },
             files: ["content.js"]
         },
         () => {
-            chrome.tabs.sendMessage(tab.id, { action: "analyze" }, (response) => {
-                if (chrome.runtime.lastError) {
-                    alert("Please open an email before analyzing.");
-                    return;
+            chrome.runtime.sendMessage(
+                {
+                    action: "aiAnalyze",
+                    payload: {
+                        baselineScore: response.score,
+                        subject: response.rawEmailData?.subject || "",
+                        issues: response.issues
+                    }
+                },
+                (aiResponse) => {
+                    const finalScore = Math.round(
+                        response.score * 0.6 + aiResponse.aiRiskScore * 0.4
+                    );
+
+                    document.getElementById("score").textContent = finalScore;
+                    document.getElementById("status").textContent = aiResponse.aiLabel;
+
+                    const issuesList = document.getElementById("issues");
+                    issuesList.innerHTML = "";
+
+                    response.issues.forEach(issue => {
+                        const li = document.createElement("li");
+                        li.textContent = issue;
+                        issuesList.appendChild(li);
+                    });
+
+                    const aiLi = document.createElement("li");
+                    aiLi.textContent = `AI Insight: ${aiResponse.explanation}`;
+                    issuesList.appendChild(aiLi);
                 }
+            );
 
-                document.getElementById("score").textContent = response.score;
-                document.getElementById("status").textContent = response.status;
-
-                const issuesList = document.getElementById("issues");
-                issuesList.innerHTML = "";
-
-                response.issues.forEach(issue => {
-                    const li = document.createElement("li");
-                    li.textContent = issue;
-                    issuesList.appendChild(li);
-                });
-            });
         }
     );
 });
