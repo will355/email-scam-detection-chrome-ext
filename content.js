@@ -1,3 +1,13 @@
+function emptyResponse(reason) {
+    return {
+        score: 0,
+        status: "Safe",
+        issues: [reason],
+        features: {}
+    };
+}
+
+
 function detectEmailProviders() {
     const host = window.location.hostname
     if (host.includes('mail.google.com')) return 'gmail';
@@ -63,7 +73,7 @@ function extractYahooEmail() {
     const senderName = document.querySelector('[data-test-id="message-from"] span')?.textContent?.trim() || "";
     const senderEmail = document.querySelector('[data-test-id="message-from"] span')?.getAttribute("title") || "";
     const subject = document.querySelector('[data-test-id="message-subject"]')?.textContent?.trim() || "";
-    const bodyText = document.querySelector('[data-test-id="message-subject"]')?.textContent?.trim() || "";
+    const bodyText = document.querySelector('[data-test-id="message-view-body"]')?.innerText?.trim() || "";
     const links = Array.from(
         document.querySelectorAll('[data-test-id="message-view-body"] a')
     ).map(a => a.href);
@@ -156,88 +166,74 @@ function extractSecurityFeatures(raw) {
     };
 }
 
-const features = extractSecurityFeatures(rawEmailData);
 
+function calculateBaselineRisk(features) {
+    let score = 0;
+    const issues = [];
 
+    if (features.externalSender) {
+        score += 25;
+        issues.push("External sender domain");
+    }
+
+    if (!features.senderDomainMatchesLinks) {
+        score += 20;
+        issues.push("Sender domain does not match link domains");
+    }
+
+    if (features.hasShortenedLinks) {
+        score += 20;
+        issues.push("Shortened URLs detected");
+    }
+
+    if (features.hasIpBasedLinks) {
+        score += 25;
+        issues.push("IP-based link detected");
+    }
+
+    if (features.linkCount >= 3) {
+        score += 15;
+        issues.push("Multiple links in email");
+    }
+
+    score = Math.min(score, 100);
+
+    let status = "Safe";
+    if (score > 30) status = "Suspicious";
+    if (score > 70) status = "High Risk";
+
+    return { score, status, issues };
+}
 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
+    if (request.action !== "analyze") return;
 
     if (!EMAIL_PROVIDER) {
-        sendResponse({ error: "unsupported_provider" });
+        sendResponse(emptyResponse("Unsupported email provider"));
         return;
     }
 
     if (!isEmailOpen(EMAIL_PROVIDER)) {
-        sendResponse({ error: "no_email_open" });
+        sendResponse(emptyResponse("No email open"));
         return;
     }
 
-    if (request.action !== "analyze") return;
-
     const rawEmailData = extractEmailByProvider(EMAIL_PROVIDER);
-    sendResponse({ rawEmailData })
 
-
-    const emailText = document.body.innerText.toLowerCase();
-    const links = [...document.querySelectorAll('a')].map(a => a.href);
-
-
-    let score = 100;
-    let issues = [];
-
-
-    // Keyword checks
-    const redFlags = [
-        "verify your account",
-        "urgent",
-        "password",
-        "click below",
-        "suspended",
-        "unauthorized",
-        "confirm now"
-    ];
-
-
-    redFlags.forEach(flag => {
-        if (emailText.includes(flag)) {
-            score -= 10;
-            issues.push(`Suspicious phrase detected: "${flag}"`);
-        }
-    });
-
-
-    //
-    links.forEach(link => {
-        if (link.startsWith("http://")) {
-            score -= 10;
-            issues.push("Insecure HTTP link detected");
-        }
-
-
-        if (link.includes("@")) {
-            score -= 20;
-            issues.push("Possible deceptive link (contains @)");
-        }
-    });
-
-
-    // Too many links
-    if (links.length > 5) {
-        score -= 10;
-        issues.push("Email contains many links");
+    if (!rawEmailData) {
+        sendResponse(emptyResponse("Failed to extract email"));
+        return;
     }
 
+    const features = extractSecurityFeatures(rawEmailData);
+    const baseline = calculateBaselineRisk(features);
 
-    // Final verdict
-    let status = "Legit";
-    if (score < 70) status = "Suspicious";
-    if (score < 40) status = "Scam Likely";
-
-
-    score = Math.max(score, 0);
-
-
-    sendResponse({ score, status, issues });
+    sendResponse({
+        score: baseline.score,
+        status: baseline.status,
+        issues: baseline.issues,
+        features
+    });
 });
